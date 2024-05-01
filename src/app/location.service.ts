@@ -1,5 +1,5 @@
 import { Injectable } from '@angular/core';
-import {WeatherService} from "./weather.service";
+import { ReplaySubject, Subject } from 'rxjs';
 
 export const LOCATIONS : string = "locations";
 
@@ -7,19 +7,21 @@ export const LOCATIONS : string = "locations";
 export class LocationService {
 
   locations : string[] = [];
+  addedLocationSubject$: Subject<string> = new ReplaySubject();
+  removeLocationSubject$: Subject<string> = new Subject();
 
-  constructor(private weatherService : WeatherService) {
+  constructor() {
     let locString = localStorage.getItem(LOCATIONS);
     if (locString)
       this.locations = JSON.parse(locString);
     for (let loc of this.locations)
-      this.weatherService.addCurrentConditions(loc);
+      this.addedLocationSubject$.next(loc)
   }
 
   addLocation(zipcode : string) {
     this.locations.push(zipcode);
     localStorage.setItem(LOCATIONS, JSON.stringify(this.locations));
-    this.weatherService.addCurrentConditions(zipcode);
+    this.addedLocationSubject$.next(zipcode)
   }
 
   removeLocation(zipcode : string) {
@@ -27,7 +29,7 @@ export class LocationService {
     if (index !== -1){
       this.locations.splice(index, 1);
       localStorage.setItem(LOCATIONS, JSON.stringify(this.locations));
-      this.weatherService.removeCurrentConditions(zipcode);
+      this.removeLocationSubject$.next(zipcode);
     }
   }
 }
