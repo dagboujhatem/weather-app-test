@@ -89,4 +89,13 @@ export class CacheHttpService {
     localStorage.setItem(CACHE_REQUESTS, JSON.stringify(this.cacheRequests$.getValue()));
   }
 
+  // This method is used to remove cache Data (Reponse from localStorage) for a specific ZipCode
+  removeCacheDataForSpacificLocation(zipCode: string){
+    const index = this.cacheRequests$.getValue().findIndex(cache => cache.url.includes(zipCode));
+    if (index !== -1) {
+      this.cacheRequests$.getValue().splice(index, 1)
+      localStorage.setItem(CACHE_REQUESTS, JSON.stringify(this.cacheRequests$.getValue()));
+    }
+  }
+
 }

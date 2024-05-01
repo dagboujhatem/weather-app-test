@@ -1,5 +1,5 @@
 import {Injectable, Signal, signal} from '@angular/core';
-import {Observable} from 'rxjs';
+import {EMPTY, Observable} from 'rxjs';
 // import { EMPTY, Observable } from 'rxjs';
 import { catchError, tap } from 'rxjs/operators';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
@@ -35,14 +35,22 @@ export class WeatherService {
   addCurrentConditions(zipcode: string): void {
     // Here we make a request to get the current conditions data from the API. Note the use of backticks and an expression to insert the zipcode
     this.cacheHttpService.get<CurrentConditions>(`${WeatherService.URL}/weather?zip=${zipcode},us&units=imperial&APPID=${WeatherService.APPID}`)
+      .pipe(
+        catchError(() =>  {
+        this.removeCurrentConditions(zipcode)
+        return EMPTY;
+      }))
       .subscribe(data => this.currentConditions.update(conditions => [...conditions, {zip: zipcode, data}]));
   }
 
   removeCurrentConditions(zipcode: string) {
     this.currentConditions.update(conditions => {
       for (let i in conditions) {
-        if (conditions[i].zip == zipcode)
+        if (conditions[i].zip == zipcode){
           conditions.splice(+i, 1);
+          this.cacheHttpService.removeCacheDataForSpacificLocation(zipcode)
+          this.cacheHttpService.removeCacheDataForSpacificLocation(zipcode)
+        }
       }
       return conditions;
     })
